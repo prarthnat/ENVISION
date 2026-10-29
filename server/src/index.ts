@@ -1,22 +1,19 @@
 import app from './app';
 import { seedDatabase } from './lib/seed';
+import { prisma } from './lib/prisma';
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
 async function start(): Promise<void> {
-  try {
-    const result = await seedDatabase({ force: false });
-    if (result.seeded) {
-      console.log(
-        `🌱 Empty database seeded with mock data: ${result.projectCount} projects, ${result.taskCount} tasks`
-      );
-    } else {
-      console.log(
-        `📦 Database already contains ${result.projectCount} projects and ${result.taskCount} tasks — skipping seed`
-      );
-    }
-  } catch (error) {
-    console.error('❌ Auto-seed failed:', error);
+  const result = await seedDatabase({ force: false });
+  if (result.seeded) {
+    console.log(
+      `🌱 Empty database seeded with mock data: ${result.projectCount} projects, ${result.taskCount} tasks`
+    );
+  } else {
+    console.log(
+      `📦 Database already contains ${result.projectCount} projects and ${result.taskCount} tasks — skipping seed`
+    );
   }
 
   app.listen(PORT, () => {
@@ -26,4 +23,8 @@ async function start(): Promise<void> {
   });
 }
 
-start();
+start().catch((error) => {
+  console.error('❌ Server startup failed:', error);
+  void prisma.$disconnect();
+  process.exitCode = 1;
+});

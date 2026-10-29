@@ -6,8 +6,12 @@ import { createError } from '../middleware/errorHandler';
 const router = Router();
 
 function parseId(param: string, next: NextFunction): number | null {
-  const id = parseInt(param, 10);
-  if (isNaN(id) || id <= 0) {
+  if (!/^[1-9]\d*$/.test(param)) {
+    next(createError('Invalid ID — must be a positive integer', 400, 'INVALID_ID'));
+    return null;
+  }
+  const id = Number(param);
+  if (!Number.isSafeInteger(id)) {
     next(createError('Invalid ID — must be a positive integer', 400, 'INVALID_ID'));
     return null;
   }

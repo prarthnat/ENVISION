@@ -56,6 +56,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewProject }) => {
   const pendingTasks = summary?.pendingTasks ?? summary?.tasksByStatus?.Pending ?? 0;
   const activeProjects = summary?.activeProjects ?? summary?.byStatus?.Active ?? 0;
   const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const prioritizedProjects = [...(projects ?? [])].sort((a, b) => {
+    const statusPriority = { Active: 0, 'On Hold': 1, Completed: 2 };
+    const statusOrder = statusPriority[a.status] - statusPriority[b.status];
+    if (statusOrder !== 0) return statusOrder;
+    if (!a.deadline) return 1;
+    if (!b.deadline) return -1;
+    return a.deadline.localeCompare(b.deadline);
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -189,7 +197,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewProject }) => {
       {/* Recent Projects Grid */}
       <section aria-label="Recent Projects">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Active & Priority Projects</h2>
+          <h2 className="text-lg font-semibold text-white">Priority Projects</h2>
           <Link to="/projects" className="text-xs font-medium text-indigo-400 hover:text-indigo-300">
             Browse all ({projects?.length || 0}) →
           </Link>
@@ -210,7 +218,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewProject }) => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.slice(0, 6).map((project) => {
+            {prioritizedProjects.slice(0, 6).map((project) => {
               const projectProgress =
                 project.taskCount > 0
                   ? Math.round((project.completedTaskCount / project.taskCount) * 100)

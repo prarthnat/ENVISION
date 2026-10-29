@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Project, ProjectStatus, CreateProjectInput } from '../types';
+import { useDialogAccessibility } from '../hooks/useDialogAccessibility';
 
 interface ProjectFormModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
   const [status, setStatus] = useState<ProjectStatus>('Active');
   const [deadline, setDeadline] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const dialogRef = useDialogAccessibility(isOpen, onClose, isLoading);
 
   useEffect(() => {
     if (projectToEdit) {
@@ -43,7 +45,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
     const errs: Record<string, string> = {};
     if (!title.trim()) {
       errs.title = 'Project title is required';
-    } else if (title.length > 200) {
+    } else if (title.trim().length > 200) {
       errs.title = 'Title must be 200 characters or fewer';
     }
 
@@ -79,6 +81,8 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="project-modal-title"
+      tabIndex={-1}
+      ref={dialogRef}
     >
       <div className="w-full max-w-lg bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-hidden">
         {/* Modal Header */}
@@ -89,6 +93,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
+            disabled={isLoading}
             className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-md"
             aria-label="Close modal"
           >
@@ -108,7 +113,11 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
             <input
               id="project-title"
               type="text"
-              required
+              aria-required="true"
+              maxLength={200}
+              data-autofocus
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'project-title-error' : undefined}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Mobile App for Fitness Tracking"
@@ -116,7 +125,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                 errors.title ? 'border-red-500' : 'border-surface-border'
               }`}
             />
-            {errors.title && <p className="mt-1 text-xs text-red-400">{errors.title}</p>}
+            {errors.title && <p id="project-title-error" className="mt-1 text-xs text-red-400">{errors.title}</p>}
           </div>
 
           {/* Description */}
@@ -127,6 +136,9 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
             <textarea
               id="project-desc"
               rows={3}
+              maxLength={2000}
+              aria-invalid={!!errors.description}
+              aria-describedby={errors.description ? 'project-description-error' : undefined}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide a high-level overview of the scope and deliverables..."
@@ -134,7 +146,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                 errors.description ? 'border-red-500' : 'border-surface-border'
               }`}
             />
-            {errors.description && <p className="mt-1 text-xs text-red-400">{errors.description}</p>}
+            {errors.description && <p id="project-description-error" className="mt-1 text-xs text-red-400">{errors.description}</p>}
           </div>
 
           {/* Grid: Status & Deadline */}
@@ -164,13 +176,16 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
               <input
                 id="project-deadline"
                 type="date"
+                min="0001-01-01"
+                aria-invalid={!!errors.deadline}
+                aria-describedby={errors.deadline ? 'project-deadline-error' : undefined}
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 className={`w-full px-3.5 py-2.5 bg-surface-raised border rounded-lg text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                   errors.deadline ? 'border-red-500' : 'border-surface-border'
                 }`}
               />
-              {errors.deadline && <p className="mt-1 text-xs text-red-400">{errors.deadline}</p>}
+              {errors.deadline && <p id="project-deadline-error" className="mt-1 text-xs text-red-400">{errors.deadline}</p>}
             </div>
           </div>
 

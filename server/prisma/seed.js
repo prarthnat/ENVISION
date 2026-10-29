@@ -3,8 +3,11 @@ const fs = require('fs');
 const path = require('path');
 
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
-if (process.env.DATABASE_URL?.startsWith('file:./')) {
-  process.env.DATABASE_URL = `file:${path.resolve(__dirname, process.env.DATABASE_URL.slice('file:'.length))}`;
+const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
+if (databaseUrl.startsWith('file:./')) {
+  process.env.DATABASE_URL = `file:${path.resolve(__dirname, databaseUrl.slice('file:'.length))}`;
+} else {
+  process.env.DATABASE_URL = databaseUrl;
 }
 
 const prisma = new PrismaClient();

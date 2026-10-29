@@ -74,6 +74,10 @@ describe('EnvisionStudio API Test Suite', () => {
       expect(res.body.data.activeProjects).toBe(1);
       expect(res.body.data.completedTasks).toBe(1);
       expect(res.body.data.pendingTasks).toBe(1);
+      expect(res.body.totalProjects).toBe(2);
+      expect(res.body.activeProjects).toBe(1);
+      expect(res.body.completedTasks).toBe(1);
+      expect(res.body.pendingTasks).toBe(1);
     });
   });
 
@@ -139,6 +143,12 @@ describe('EnvisionStudio API Test Suite', () => {
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('INVALID_ID');
     });
+
+    it('rejects IDs with trailing non-numeric characters', async () => {
+      const res = await request(app).get('/api/projects/1abc');
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_ID');
+    });
   });
 
   describe('POST /api/projects', () => {
@@ -164,6 +174,12 @@ describe('EnvisionStudio API Test Suite', () => {
       expect(res.body.error.fields.title).toBeDefined();
     });
 
+    it('returns 400 when title contains only whitespace', async () => {
+      const res = await request(app).post('/api/projects').send({ title: '   ' });
+      expect(res.status).toBe(400);
+      expect(res.body.error.fields.title).toBeDefined();
+    });
+
     it('returns 400 when deadline format is invalid', async () => {
       const res = await request(app).post('/api/projects').send({
         title: 'Project with invalid date',
@@ -171,6 +187,15 @@ describe('EnvisionStudio API Test Suite', () => {
       });
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('VALIDATION_ERROR');
+      expect(res.body.error.fields.deadline).toBeDefined();
+    });
+
+    it('returns 400 when deadline is not a real calendar date', async () => {
+      const res = await request(app).post('/api/projects').send({
+        title: 'Project with impossible date',
+        deadline: '2026-02-30',
+      });
+      expect(res.status).toBe(400);
       expect(res.body.error.fields.deadline).toBeDefined();
     });
   });

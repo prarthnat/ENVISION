@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNewProject }) => {
           <button
             type="button"
             className="md:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-800"
-            aria-label="Open menu"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((open) => !open)}
           >

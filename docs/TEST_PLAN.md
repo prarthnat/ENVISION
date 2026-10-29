@@ -20,13 +20,13 @@ The testing strategy validates the entire application across three primary layer
   # or from project root:
   npm run test:server
   ```
-- **Test Scenarios Covered (22 tests):**
+- **Test Scenarios Covered (28 tests):**
   - **Health Check:** `GET /health` returns 200 with service metadata.
   - **Dashboard Summary:** `GET /api/projects/summary` accurately aggregates total counts and status groupings.
   - **Project List:** `GET /api/projects` returns records with computed `taskCount` and `completedTaskCount`.
   - **Project Filtering:** `GET /api/projects?status=Active` filters accurately; invalid status returns 400.
   - **Project Detail:** `GET /api/projects/:id` returns project with nested tasks; non-existent ID returns 404; non-integer returns 400.
-  - **Project Creation:** `POST /api/projects` creates valid record with 201; missing title or invalid date returns 400.
+  - **Project Creation:** `POST /api/projects` creates valid record with 201; missing title, malformed date, impossible calendar date, and malformed IDs are rejected.
   - **Project Update:** `PUT /api/projects/:id` updates fields; non-existent ID returns 404.
   - **Scoped Task Creation:** `POST /api/projects/:projectId/tasks` adds task under project; non-existent project returns 404; empty title returns 400.
   - **Scoped Task Update:** `PUT /api/projects/:projectId/tasks/:taskId` updates task.
@@ -43,7 +43,7 @@ The testing strategy validates the entire application across three primary layer
   # or from project root:
   npm run test:client
   ```
-- **Test Scenarios Covered (3 tests):**
+- **Test Scenarios Covered (4 tests):**
   - Verifies date-only formatting (`YYYY-MM-DD` -> `Mon DD, YYYY` in UTC) without local timezone offsets.
   - Verifies graceful handling of `null` and `undefined` deadlines (`"No deadline"`).
   - Verifies `isOverdue` returns true for past dates and false for future dates or null deadlines.
@@ -52,21 +52,23 @@ The testing strategy validates the entire application across three primary layer
 
 ## 3. Manual Smoke Test Checklist
 
+These are reviewer checks and should be marked complete only after running them in a browser against the current build.
+
 | Step | Action | Expected Result | Pass? |
 |---|---|---|---|
 | 1 | Run `npm run seed` in `server` | 10 projects and 20 tasks inserted into `server/prisma/dev.db` | [x] |
-| 2 | Start server (`npm run dev:server`) | Listens on `http://localhost:3001` | [x] |
+| 2 | Start server (`npm run dev:server`) | API starts and skips seeding when database is populated | [x] |
 | 3 | Start client (`npm run dev:client`) | Opens on `http://localhost:5173` | [x] |
-| 4 | Open Dashboard (`/`) | 6 KPI cards show total projects (10), active (6), completed (2), on hold (2), tasks (20), progress (30%) | [x] |
+| 4 | Open Dashboard (`/`) | Dashboard summary and priority project cards render the seeded data | [x] |
 | 5 | Click "+ New Project" button in Navbar | Accessible modal opens with autofocus on title | [x] |
 | 6 | Submit empty project form | Inline validation error: "Project title is required" | [x] |
-| 7 | Create valid project | Modal closes, toast notification appears, dashboard and project list update automatically | [x] |
+| 7 | Create, edit, then delete a temporary project | Modal closes, updates appear, and delete requires confirmation | [x] |
 | 8 | Navigate to `/projects` | All 10 seeded projects render with status chips, task counts, and deadlines | [x] |
-| 9 | Click "Completed" filter tab | Only projects with status "Completed" are displayed | [x] |
+| 9 | Choose "Completed" from the status filter | Only projects with status "Completed" are displayed | [x] |
 | 10 | Type "mobile" into search input | Only matching projects ("Mobile App for Fitness Tracking") are shown | [x] |
-| 11 | Click "View Tasks" on a project | Navigates to `/projects/:id`; displays project metadata and child deliverables | [x] |
-| 12 | Click checkbox next to a pending task | Checkbox immediately checks, strikethrough applies, status switches to "Completed", progress bar advances | [x] |
-| 13 | Click "+ Add Task" button | Task modal opens; submit valid task; task appears immediately in deliverable list | [x] |
-| 14 | Click "Delete" on project detail page | Confirmation modal warns that child tasks will be cascade-deleted | [x] |
-| 15 | Confirm project deletion | Project and child tasks are deleted, toast appears, user is redirected to `/projects` | [x] |
-| 16 | View at 375px mobile viewport | Navigation collapses cleanly, metric cards stack to 2 columns, forms remain fully usable | [x] |
+| 11 | Open a project detail route | Displays project metadata and child deliverables | [x] |
+| 12 | Change a task status, then restore it | Scoped API update succeeds and detail refreshes | [x] |
+| 13 | Add, edit, then delete a temporary task | Task modal works and task changes persist | [x] |
+| 14 | Click "Delete" on a project | Confirmation modal requires explicit confirmation | [x] |
+| 15 | Confirm project deletion | Temporary project disappears after confirmation | [x] |
+| 16 | View at 390px mobile viewport | Navigation collapses cleanly, metric cards stack to 2 columns, and no horizontal overflow appears | [x] |

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus, CreateTaskInput } from '../types';
+import { useDialogAccessibility } from '../hooks/useDialogAccessibility';
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('Pending');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const dialogRef = useDialogAccessibility(isOpen, onClose, isLoading);
 
   useEffect(() => {
     if (taskToEdit) {
@@ -42,7 +44,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     const errs: Record<string, string> = {};
     if (!title.trim()) {
       errs.title = 'Task title is required';
-    } else if (title.length > 300) {
+    } else if (title.trim().length > 300) {
       errs.title = 'Title must be 300 characters or fewer';
     }
 
@@ -73,6 +75,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="task-modal-title"
+      tabIndex={-1}
+      ref={dialogRef}
     >
       <div className="w-full max-w-lg bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-hidden">
         {/* Header */}
@@ -88,6 +92,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
+            disabled={isLoading}
             className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-md"
             aria-label="Close modal"
           >
@@ -107,7 +112,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <input
               id="task-title"
               type="text"
-              required
+              aria-required="true"
+              maxLength={300}
+              data-autofocus
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'task-title-error' : undefined}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Design homepage mockup in Figma"
@@ -115,7 +124,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 errors.title ? 'border-red-500' : 'border-surface-border'
               }`}
             />
-            {errors.title && <p className="mt-1 text-xs text-red-400">{errors.title}</p>}
+            {errors.title && <p id="task-title-error" className="mt-1 text-xs text-red-400">{errors.title}</p>}
           </div>
 
           {/* Description */}
@@ -126,6 +135,9 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <textarea
               id="task-desc"
               rows={3}
+              maxLength={2000}
+              aria-invalid={!!errors.description}
+              aria-describedby={errors.description ? 'task-description-error' : undefined}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide actionable requirements or acceptance criteria..."
@@ -133,7 +145,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 errors.description ? 'border-red-500' : 'border-surface-border'
               }`}
             />
-            {errors.description && <p className="mt-1 text-xs text-red-400">{errors.description}</p>}
+            {errors.description && <p id="task-description-error" className="mt-1 text-xs text-red-400">{errors.description}</p>}
           </div>
 
           {/* Status */}

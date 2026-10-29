@@ -1,5 +1,7 @@
 # Deployment & Operations Runbook — EnvisionStudio
 
+> **Deployment status:** This is a deployment guide, not evidence of a live deployment. The sample hostnames below are placeholders. Add the real public frontend and API URLs to the README after deploying and verifying both services.
+
 ## 1. Hosting Topology & Architecture
 
 To support a persistent SQLite relational database alongside a modern Vite frontend, the recommended production setup separates static asset delivery from the stateful Node.js backend.

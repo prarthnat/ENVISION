@@ -6,7 +6,7 @@ This document details the usage of Artificial Intelligence tools during the plan
 
 ## 1. AI Assistant Details
 
-- **Tools utilized:** Cursor (Grok) for audit, auto-seed, dashboard stats, UI polish, and README; earlier scaffolding via Google DeepMind Antigravity.
+- **Tools utilized:** Cursor (Grok) for earlier audit, auto-seed, dashboard stats, UI polish, and README; Google DeepMind Antigravity for earlier scaffolding; Codex for this final requirements audit and targeted corrections.
 - **Primary Roles Assigned:**
   - Assessment Analyst / Requirements Architect (Prompt 1).
   - Senior Full-Stack Pair-Programming Engineer & Mentor (Prompt 2).
@@ -36,7 +36,7 @@ All AI-generated code and configuration underwent rigorous verification:
 
 1. **Execution Verification:**
    - Every file was verified by compiling TypeScript (`tsc`) with zero errors.
-   - All 22 backend integration tests were executed against a live SQLite database and verified using Vitest and Supertest.
+   - The current suite has 28 backend integration tests and 4 frontend unit tests, run with Vitest and Supertest. Backend tests use a disposable SQLite database populated from checked-in migration SQL.
    - Frontend unit tests were run to verify timezone independence and deadline formatting.
 2. **Mock-Data Accuracy Audit:**
    - Database seed results were verified by running `GET /api/projects/summary` and inspecting seeded project records to confirm exact parity with the source Google Doc.
@@ -44,4 +44,4 @@ All AI-generated code and configuration underwent rigorous verification:
    - Inspected `.gitignore` to guarantee `.env` and SQLite database files (`dev.db`) are never committed to version control.
    - Verified that parameterized queries are used exclusively and stack traces are suppressed in production.
 4. **Manual UX Smoke Testing:**
-   - Manually tested UI workflows in a live browser, including project creation, status filtering, task completion toggling, and cascade delete confirmation dialogs.
+   - Reviewed desktop and mobile dashboard, project list, project detail, status filtering, table view, task status changes, project/task CRUD, and dialog keyboard behavior in headless Chrome. Screen-reader testing remains outstanding; the checklist is in [`TEST_PLAN.md`](./TEST_PLAN.md).

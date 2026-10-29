@@ -7,10 +7,10 @@ This guide equips you with honest, precise explanations of every architectural d
 ## 1. Executive Architecture Summary
 
 > **English:**  
-> "I built EnvisionStudio as a modular monolith using React, Vite, and TypeScript on the frontend, and Node.js with Express, Prisma, and SQLite on the backend. I modeled Project and Task with a strict one-to-many relationship and database-enforced cascade deletion. Deadlines are treated as date-only ISO strings parsed in UTC to eliminate timezone displacement. All endpoints enforce Zod validation, and task endpoints are strictly scoped to the parent project to prevent cross-project task tampering."
+> "I built EnvisionStudio as a modular monolith using React, Vite, and TypeScript on the frontend, and Node.js with Express, Prisma, and SQLite on the backend. Project and Task have a one-to-many relationship with database-enforced cascade deletion. Deadlines are date-only ISO strings, validated as real calendar dates and formatted in UTC. Request bodies and filters use Zod, route IDs use strict positive-integer validation, and the UI uses project-scoped task routes to prevent cross-project task changes."
 
 > **Hinglish:**  
-> "Maine EnvisionStudio ko modular monolith ke format mein banaya hai—React + Vite frontend aur Express + Prisma + SQLite backend. Project aur Task ke beech 1:N relationship hai with database-level cascade delete. Deadlines ko date-only string ki tarah store aur UTC mein parse kiya hai taaki timezone offset ka koi bug na aaye. Saari routes Zod se validate hoti hain aur task routes project ke under scoped hain taaki cross-project manipulation na ho sake."
+> "Maine EnvisionStudio ko modular monolith ke format mein banaya hai—React + Vite frontend aur Express + Prisma + SQLite backend. Project aur Task ke beech 1:N relationship hai with database-level cascade delete. Deadlines date-only strings hain, valid calendar dates ke roop mein validate hote hain aur UTC mein format hote hain. Request bodies aur filters Zod se validate hote hain, route IDs positive integers check karte hain, aur UI project-scoped task routes use karti hai."
 
 ---
 
@@ -34,25 +34,25 @@ This guide equips you with honest, precise explanations of every architectural d
 
 ### Q3: How do you prevent cross-project task tampering?
 - **English Answer:**  
-  "Instead of using unconstrained task endpoints like `PUT /api/tasks/:id`, I implemented scoped routes: `/api/projects/:projectId/tasks/:taskId`. When a request arrives, the route handler verifies that the parent project exists, and explicitly checks `if (task.projectId !== projectId)`. If a client attempts to update Task 101 through Project 2's route, the server immediately rejects the request with HTTP 400 and code `CROSS_PROJECT_TASK_MISMATCH`."
+  "The API supports both global task endpoints and project-scoped routes. The UI uses `/api/projects/:projectId/tasks/:taskId`; those handlers verify the parent project and explicitly check `if (task.projectId !== projectId)`. If a client attempts to update Task 101 through Project 2's route, the server rejects it with HTTP 400 and code `CROSS_PROJECT_TASK_MISMATCH`."
 - **Hinglish Answer:**  
-  "Direct `/api/tasks/:id` route use karne se koi bhi kisi dusre project ka task modify kar sakta tha. Maine routes ko project-scoped banaya: `/api/projects/:projectId/tasks/:taskId`. Handler pehle project check karta hai, fir check karta hai ki kya ye task isi project ka hai. Agar match nahi hota toh turant 400 rejection bhejta hai."
+  "API global aur project-scoped dono routes support karti hai. UI `/api/projects/:projectId/tasks/:taskId` use karti hai. Handler parent project check karta hai aur confirm karta hai ki task isi project ka hai. Mismatch par 400 error return hota hai."
 
 ---
 
 ### Q4: How is seed idempotency guaranteed?
 - **English Answer:**  
-  "The seed script runs inside a database transaction (`prisma.$transaction`). It executes `task.deleteMany()` followed by `project.deleteMany()`, and then inserts the 10 employer mock projects and 20 tasks. This guarantees that running `npm run seed` multiple times always results in the exact same 10 projects and 20 tasks without duplicates or primary key sequence collisions."
+  "The seed script runs inside a database transaction (`prisma.$transaction`). It deletes tasks before projects and inserts the 10 employer mock projects and 20 tasks. Repeated runs restore the same demo dataset; because it replaces existing records, I only run it against a demo or development database."
 - **Hinglish Answer:**  
-  "`seed.ts` script database transaction ke andar chalta hai. Pehle existing records safely delete karta hai, fir exact 10 projects aur 20 tasks insert karta hai. Is wajah se chahe reviewer 10 baar bhi seed command run kare, database mein koi duplicate data create nahi hota."
+  "`seed.js` script database transaction ke andar chalta hai. Ye selected database ke existing records ko replace karke exact 10 projects aur 20 tasks insert karta hai. Ye demo reset command hai, isliye ise production data par run nahi karna chahiye."
 
 ---
 
 ### Q5: How do you avoid the N+1 query problem on the project list?
 - **English Answer:**  
-  "Rather than fetching projects and then executing 10 separate queries to count tasks for each project, I leveraged Prisma's `include: { _count: { select: { tasks: true } }, tasks: { select: { status: true } } }`. Prisma batches this into a single optimized query with SQL joins, allowing the server to calculate total tasks and completed tasks in memory before returning the response."
+  "Rather than fetching projects and then issuing a separate count query for every project, I use Prisma's `_count` and select only task status for the list response. That avoids application-level N+1 calls; the server computes completed task counts before returning the response."
 - **Hinglish Answer:**  
-  "Har project ke tasks ginne ke liye alag-alag queries run karne se N+1 problem aati hai. Maine Prisma ka `_count` aur selective field inclusion use kiya jo ek single SQL query mein execute hota hai. Isse database round-trips minimize ho jaate hain."
+  "Har project ke tasks ginne ke liye alag-alag application queries nahi chalata. Prisma `_count` aur sirf task status select karta hai, aur server completed count calculate karta hai."
 
 ---
 
@@ -66,5 +66,5 @@ When speaking to a senior interviewer, demonstrating intellectual honesty about 
 2. **SQLite Concurrency:**
    - *Status:* SQLite uses file-level locking for writes.
    - *Defense:* "SQLite is ideal for single-container deployment. For high-concurrency multi-instance scaling, I would transition Prisma to a managed PostgreSQL cluster."
-3. **Automated E2E Testing:**
-   - *Status:* Full API integration tests (22 tests) and client unit tests (3 tests) are automated. Full browser E2E (Playwright) was manually smoke-tested due to time boxing.
+3. **Automated and Browser Testing:**
+   - *Status:* 28 API integration tests and 4 client unit tests are automated. This audit also used headless Chrome for key navigation, filtering, CRUD, responsive rendering, and dialog keyboard checks; it does not include a full automated browser suite or screen-reader review.

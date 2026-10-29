@@ -78,13 +78,16 @@ export const tasksApi = {
     return res.data.data;
   },
 
-  update: async (_projectId: number, taskId: number, data: UpdateTaskInput): Promise<Task> => {
-    const res = await api.put<ApiSingleResponse<Task>>(`/api/tasks/${taskId}`, data);
+  update: async (projectId: number, taskId: number, data: UpdateTaskInput): Promise<Task> => {
+    const res = await api.put<ApiSingleResponse<Task>>(
+      `/api/projects/${projectId}/tasks/${taskId}`,
+      data
+    );
     return res.data.data;
   },
 
-  delete: async (_projectId: number, taskId: number): Promise<void> => {
-    await api.delete(`/api/tasks/${taskId}`);
+  delete: async (projectId: number, taskId: number): Promise<void> => {
+    await api.delete(`/api/projects/${projectId}/tasks/${taskId}`);
   },
 };
 

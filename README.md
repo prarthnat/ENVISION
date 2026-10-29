@@ -4,6 +4,8 @@ Full-stack project and task dashboard for the EnvisionStudio Web Developer pract
 
 **Permitted stack selected:** React + Node (Vite, Express, SQLite, Tailwind CSS). MongoDB/Mongoose is also allowed by the brief; SQLite was chosen so reviewers can run and deploy the app without a cloud database.
 
+**Submission status:** The application and local verification are ready. A public deployment URL is still required by the assessment and is not configured in this repository; complete deployment and add the URL before submitting.
+
 ---
 
 ## Local installation
@@ -20,7 +22,7 @@ Full-stack project and task dashboard for the EnvisionStudio Web Developer pract
 | Variable | Purpose | Example |
 |---|---|---|
 | `PORT` | API listen port | `3001` |
-| `DATABASE_URL` | SQLite connection string | `file:./prisma/dev.db` |
+| `DATABASE_URL` | SQLite connection string (relative to `server/prisma/schema.prisma`) | `file:./dev.db` |
 | `CORS_ORIGIN` | Allowed frontend origin (`*` or comma-separated) | `http://localhost:5173` |
 | `NODE_ENV` | `development`, `test`, or `production` | `development` |
 
@@ -32,24 +34,28 @@ Full-stack project and task dashboard for the EnvisionStudio Web Developer pract
 |---|---|---|
 | `VITE_API_URL` | Backend origin used by Axios | `http://localhost:3001` |
 
-### Run locally from the repository root
+### Run locally
 
 ```bash
 # Install both workspaces
 npm install
 
-# Configure the backend (copy server/.env.example to server/.env if needed)
-npx prisma migrate dev --schema server/prisma/schema.prisma
-npx prisma db seed --schema server/prisma/schema.prisma
+# Configure and initialize the backend
+cd server
+cp .env.example .env
+npx prisma migrate dev
+npx prisma db seed
+npm run dev
+```
 
-# Start the API and frontend in separate terminals
-npm run dev --workspace=server
+# In a second terminal, from the repository root:
+```bash
 npm run dev --workspace=client
 ```
 
 Open [http://localhost:5173](http://localhost:5173).
 
-The seed script imports the exact 10 projects and 20 tasks from `server/data/mock-data.json`. It is safe to run explicitly from either workspace:
+The seed script restores the exact 10 projects and 20 tasks from `server/data/mock-data.json`. It replaces existing records in the selected database, so use it to reset the assessment demo data:
 
 ```bash
 # From the repository root
@@ -98,7 +104,7 @@ Success payloads use `{ data, total? }`. Errors use `{ error: { message, code, f
 | `DELETE` | `/api/projects/:projectId/tasks/:taskId` | Delete task with parent-project check |
 | `PUT` | `/api/tasks/:id` | Update task (`status` or `completed: true/false`) |
 | `DELETE` | `/api/tasks/:id` | Delete task |
-| `GET` | `/api/projects/summary` | Alias of dashboard aggregates (backward compatible) |
+| `GET` | `/api/projects/summary` | Project and task counts grouped by status |
 
 `deadline` is stored as `YYYY-MM-DD` (date-only) to avoid timezone drift.
 
@@ -129,6 +135,8 @@ AI assistants (Cursor / prior Antigravity scaffolding) were used for:
 - Mapping the assessment brief to routes, models, and UI views
 - Boilerplate (Express middleware, Tailwind tokens, modal forms)
 - Test and README drafts
+
+Codex was also used during the final requirements audit, code review, and targeted fixes.
 
 Every generated piece was reviewed and executed locally:
 

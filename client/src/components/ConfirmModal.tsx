@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { useDialogAccessibility } from '../hooks/useDialogAccessibility';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -23,20 +24,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
-  const cancelBtnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      cancelBtnRef.current?.focus();
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onCancel();
-        }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, onCancel]);
+  const dialogRef = useDialogAccessibility(isOpen, onCancel, isLoading);
 
   if (!isOpen) return null;
 
@@ -46,6 +34,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
+      tabIndex={-1}
+      ref={dialogRef}
     >
       <div className="w-full max-w-md bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-hidden p-6">
         <div className="flex items-start gap-4">
@@ -77,7 +67,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             </p>
             {warningNote && (
               <div className="mt-3 p-3 bg-amber-950/40 border border-amber-800/30 rounded-lg text-xs text-amber-300">
-                ⚠️ {warningNote}
+                  <span aria-hidden="true">⚠️ </span>{warningNote}
               </div>
             )}
           </div>
@@ -85,7 +75,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
         <div className="mt-6 flex items-center justify-end gap-3">
           <button
-            ref={cancelBtnRef}
+            data-autofocus
             type="button"
             onClick={onCancel}
             disabled={isLoading}

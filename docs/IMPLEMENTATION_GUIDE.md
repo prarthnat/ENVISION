@@ -23,8 +23,8 @@ This guide provides a detailed, file-by-file walkthrough of the EnvisionStudio c
 
 ---
 
-### 1.2 `server/prisma/seed.ts`
-- **Responsibility:** Ingests the 10 employer-provided projects and 20 tasks into the database idempotently.
+### 1.2 `server/prisma/seed.js`
+- **Responsibility:** Resets the selected database to the 10 employer-provided projects and 20 tasks in one transaction.
 - **Why it exists:** Allows reviewers and developers to set up a clean, realistic dataset in seconds (`npm run seed`).
 - **Code Breakdown:**
   ```typescript
@@ -61,10 +61,11 @@ This guide provides a detailed, file-by-file walkthrough of the EnvisionStudio c
 
 ---
 
-### 1.5 `server/src/routes/projects.ts`
-- **Responsibility:** Implements project CRUD, dashboard summary, and scoped task operations.
+### 1.5 `server/src/routes/projects.ts` and `server/src/routes/dashboard.ts`
+- **Responsibility:** Implement project CRUD, dashboard aggregates, and scoped task operations.
 - **Key Endpoints:**
-  - `GET /api/projects/summary`: Aggregates project counts by status and task counts by status in parallel using `Promise.all` and Prisma's `groupBy`.
+  - `GET /api/dashboard/stats`: Returns the required dashboard counts plus project and task status breakdowns.
+  - `GET /api/projects/summary`: Returns project and task counts grouped by status for compatibility.
   - `GET /api/projects`: Fetches projects with an optional status filter. Includes task counts and completed task counts computed via Prisma's `_count` and projection to avoid N+1 queries.
   - `GET /api/projects/:id`: Retrieves full project details along with its child tasks ordered chronologically.
   - `POST /api/projects`: Creates a new project with Zod validation.
@@ -124,7 +125,8 @@ This guide provides a detailed, file-by-file walkthrough of the EnvisionStudio c
 ### 2.3 UI Components (`client/src/components/`)
 - `Navbar.tsx`: Sticky navigation with active route highlights and a primary "+ New Project" CTA.
 - `StatusBadge.tsx`: Accessible, color-coded status chips with status dots (Indigo for Active, Emerald for Completed, Amber for On Hold, Sky for In Progress, Slate for Pending).
-- `ConfirmModal.tsx`: Focus-trapped confirmation modal with escape-key handling and explicit cascade deletion warnings.
+- `ConfirmModal.tsx`: Keyboard-accessible confirmation dialog with focus trapping, escape-key handling, scroll locking, and explicit cascade deletion warnings.
+- `useDialogAccessibility.ts`: Shared focus management and keyboard behavior for project, task, and confirmation dialogs.
 - `LoadingSkeleton.tsx`: Pulse-animated loading skeletons for KPI metric cards, project cards, and deliverable rows.
 - `EmptyState.tsx`: Meaningful empty states with friendly icons and actionable buttons.
 - `ErrorMessage.tsx`: Accessible alert container with retry capabilities.
@@ -135,12 +137,12 @@ This guide provides a detailed, file-by-file walkthrough of the EnvisionStudio c
 
 ### 2.4 Pages (`client/src/pages/`)
 - `Dashboard.tsx`:
-  - Fetches summary statistics via TanStack Query (`GET /api/projects/summary`).
-  - Renders 6 KPI cards (Total Projects, Active, Completed, On Hold, Total Tasks, Completion Rate).
+  - Fetches summary statistics via TanStack Query (`GET /api/dashboard/stats`).
+  - Renders the four required KPI cards: total projects, active projects, completed tasks, and pending tasks.
   - Visualizes deliverable breakdown with a stacked progress bar and interactive legend.
   - Displays grid of priority and active projects with task progress indicators.
 - `ProjectList.tsx`:
-  - Status filter tabs (`All`, `Active`, `Completed`, `On Hold`) that synchronize with API query params.
+  - Status filter dropdown (`All`, `Active`, `Completed`, `On Hold`) that synchronizes with API query params.
   - Client-side search bar filtering projects by title and description.
   - Responsive cards with task progress, deadlines, edit triggers, and cascade delete confirmation.
 - `ProjectDetail.tsx`:

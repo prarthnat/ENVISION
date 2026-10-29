@@ -8,21 +8,30 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 // Date-only regex: YYYY-MM-DD
 const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
+const dateOnlySchema = z
+  .string()
+  .regex(dateOnlyRegex, 'Deadline must be in YYYY-MM-DD format')
+  .refine((value) => {
+    const [year, month, day] = value.split('-').map(Number);
+    if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+    const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+    return day <= daysInMonth;
+  }, 'Deadline must be a valid calendar date');
 
 export const createProjectSchema = z.object({
   title: z
     .string({ required_error: 'Title is required' })
+    .trim()
     .min(1, 'Title cannot be empty')
     .max(200, 'Title cannot exceed 200 characters'),
   description: z
     .string()
+    .trim()
     .max(2000, 'Description cannot exceed 2000 characters')
     .optional(),
   status: z.enum(PROJECT_STATUSES).optional().default('Active'),
-  deadline: z
-    .string()
-    .regex(dateOnlyRegex, 'Deadline must be in YYYY-MM-DD format')
-    .optional(),
+  deadline: dateOnlySchema.optional(),
 });
 
 export const updateProjectSchema = createProjectSchema.partial();
@@ -30,10 +39,12 @@ export const updateProjectSchema = createProjectSchema.partial();
 export const createTaskSchema = z.object({
   title: z
     .string({ required_error: 'Title is required' })
+    .trim()
     .min(1, 'Title cannot be empty')
     .max(300, 'Title cannot exceed 300 characters'),
   description: z
     .string()
+    .trim()
     .max(2000, 'Description cannot exceed 2000 characters')
     .optional(),
   status: z.enum(TASK_STATUSES).optional().default('Pending'),

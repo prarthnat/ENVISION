@@ -56,9 +56,9 @@ This document records all key architectural decisions adopted for the EnvisionSt
 
 - **Status:** Accepted
 - **Context:** Task manipulation must be scoped to the parent project to prevent cross-tenant or cross-project data corruption.
-- **Decision:** Expose task operations at `/api/projects/:projectId/tasks/:taskId` and verify both project existence and that `task.projectId === projectId`. Reject mismatches with HTTP 400 (`CROSS_PROJECT_TASK_MISMATCH`).
+- **Decision:** Use project-scoped task routes in the UI and verify both project existence and that `task.projectId === projectId`. Global `/api/tasks/:id` routes remain available for compatibility. Reject scoped mismatches with HTTP 400 (`CROSS_PROJECT_TASK_MISMATCH`).
 - **Alternatives Considered:**
-  - *Global task endpoints `/api/tasks/:id`:* Convenient but fails to enforce project boundaries, allowing tasks to be modified without verifying parent project context.
+  - *Global task endpoints only:* Convenient, but they do not provide the same explicit parent-project check as scoped operations.
 - **Trade-offs:** Slightly longer URL paths in the client, but guarantees strict relational boundaries and zero unauthorized cross-project modifications.
 
 ---
@@ -103,7 +103,7 @@ This document records all key architectural decisions adopted for the EnvisionSt
 
 - **Status:** Accepted
 - **Context:** The prompt requires a polished, dark agency dashboard with readable contrast, consistent hierarchy, and no meaningless decorative fluff.
-- **Decision:** Build a custom Tailwind palette with `#0f1117` base, `#1a1d27` cards, `#2a2d3a` borders, and an Indigo (`#6366f1`) primary accent with color-coded semantic status chips.
+- **Decision:** Build a custom Tailwind palette with `#0f172a` base, `#1e293b` cards, slate borders, and an Indigo (`#6366f1`) primary accent with color-coded semantic status chips.
 - **Alternatives Considered:**
   - *Heavy gradients and glowing neon borders:* Distracting, poor accessibility, unprofessional.
   - *Pre-built component libraries (MUI/AntD):* Heavy bundle size, difficult to customize to a dark agency aesthetic.
