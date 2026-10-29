@@ -32,31 +32,34 @@ Full-stack project and task dashboard for the EnvisionStudio Web Developer pract
 |---|---|---|
 | `VITE_API_URL` | Backend origin used by Axios | `http://localhost:3001` |
 
-### Run locally
+### Run locally from the repository root
 
 ```bash
-# 1. Server
-cd server
-cp .env.example .env
+# Install both workspaces
 npm install
-npx prisma migrate dev
-npm run dev
-# Auto-seeds 10 projects and 20 tasks if the database is empty.
 
-# 2. Client (second terminal)
-cd client
-cp .env.example .env
-npm install
-npm run dev
+# Configure the backend (copy server/.env.example to server/.env if needed)
+npx prisma migrate dev --schema server/prisma/schema.prisma
+npx prisma db seed --schema server/prisma/schema.prisma
+
+# Start the API and frontend in separate terminals
+npm run dev --workspace=server
+npm run dev --workspace=client
 ```
 
 Open [http://localhost:5173](http://localhost:5173).
 
-Force a clean reseed at any time:
+The seed script imports the exact 10 projects and 20 tasks from `server/data/mock-data.json`. It is safe to run explicitly from either workspace:
 
 ```bash
-cd server && npm run seed
+# From the repository root
+npx prisma db seed
+
+# From server/
+cd server && npx prisma db seed
 ```
+
+The app also seeds automatically on first launch when the database is empty.
 
 ---
 
@@ -137,6 +140,8 @@ Every generated piece was reviewed and executed locally:
 I can walk through any file in a review: models in `server/prisma/schema.prisma`, seed logic in `server/src/lib/seed.ts`, routes in `server/src/routes/`, and UI in `client/src/pages/`.
 
 See also [`docs/AI_USAGE.md`](./docs/AI_USAGE.md).
+
+AI tools were used as development assistants for planning, implementation drafts, and documentation. All submitted code was reviewed and verified by the author; AI output was not treated as a substitute for testing or understanding the implementation.
 
 ---
 

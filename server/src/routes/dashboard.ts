@@ -23,6 +23,10 @@ router.get('/stats', async (_req: Request, res: Response, next: NextFunction) =>
       ]);
 
     res.json({
+      totalProjects,
+      activeProjects,
+      completedTasks,
+      pendingTasks,
       data: {
         totalProjects,
         activeProjects,

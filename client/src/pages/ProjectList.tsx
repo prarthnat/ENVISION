@@ -87,33 +87,30 @@ export const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onEditPr
         </button>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
+      {/* Filters & Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-surface-card border border-surface-border rounded-xl self-start overflow-x-auto max-w-full">
-          {(['All', 'Active', 'Completed', 'On Hold'] as const).map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => {
-                setSelectedStatus(status);
-                if (status === 'All') {
-                  searchParams.delete('status');
-                } else {
-                  searchParams.set('status', status);
-                }
-                setSearchParams(searchParams, { replace: true });
-              }}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                selectedStatus === status
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-surface-raised'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
+        <label className="flex items-center gap-3 self-start">
+          <span className="text-xs font-medium text-gray-400">Status</span>
+          <select
+            value={selectedStatus}
+            onChange={(event) => {
+              const status = event.target.value as ProjectStatus | 'All';
+              setSelectedStatus(status);
+              const nextParams = new URLSearchParams(searchParams);
+              if (status === 'All') nextParams.delete('status');
+              else nextParams.set('status', status);
+              setSearchParams(nextParams, { replace: true });
+            }}
+            aria-label="Filter projects by status"
+            className="px-3.5 py-2 text-xs font-medium text-gray-100 bg-surface-card border border-surface-border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {(['All', 'Active', 'Completed', 'On Hold'] as const).map((status) => (
+              <option key={status} value={status} className="bg-slate-900 text-gray-100">
+                {status}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="flex items-center gap-2 p-1 bg-surface-card border border-surface-border rounded-xl">
           <button

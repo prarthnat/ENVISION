@@ -192,6 +192,19 @@ export const ProjectDetail: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold text-white tracking-tight">{project.title}</h1>
               <StatusBadge status={project.status} />
+              <span
+                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
+                  overdue
+                    ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                    : countdown.days === 0
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                    : countdown.days !== null
+                    ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300'
+                    : 'border-slate-600 bg-slate-800 text-slate-300'
+                }`}
+              >
+                {countdown.label}
+              </span>
             </div>
             <p className="text-sm text-gray-300 leading-relaxed max-w-3xl">
               {project.description || 'No description provided for this project.'}
