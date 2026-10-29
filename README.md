@@ -1,1 +1,150 @@
-# ENVISION
+# EnvisionStudio — Project Management Dashboard
+
+Full-stack project and task dashboard for the EnvisionStudio Web Developer practical assessment. Data lives in a real database, the UI consumes REST APIs, and mock data is imported automatically on first boot.
+
+**Permitted stack selected:** React + Node (Vite, Express, SQLite, Tailwind CSS). MongoDB/Mongoose is also allowed by the brief; SQLite was chosen so reviewers can run and deploy the app without a cloud database.
+
+---
+
+## Local installation
+
+### Prerequisites
+
+- Node.js 18 or 20
+- npm 9+
+
+### Environment variables
+
+**Server (`server/.env`)**
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `PORT` | API listen port | `3001` |
+| `DATABASE_URL` | SQLite connection string | `file:./prisma/dev.db` |
+| `CORS_ORIGIN` | Allowed frontend origin (`*` or comma-separated) | `http://localhost:5173` |
+| `NODE_ENV` | `development`, `test`, or `production` | `development` |
+
+`MONGODB_URI` is **not used**. The assessment permits MongoDB *or* SQLite. This submission uses SQLite so the database is a local file and first-load seeding does not depend on Atlas credentials.
+
+**Client (`client/.env`)**
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `VITE_API_URL` | Backend origin used by Axios | `http://localhost:3001` |
+
+### Run locally
+
+```bash
+# 1. Server
+cd server
+cp .env.example .env
+npm install
+npx prisma migrate dev
+npm run dev
+# Auto-seeds 10 projects and 20 tasks if the database is empty.
+
+# 2. Client (second terminal)
+cd client
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173).
+
+Force a clean reseed at any time:
+
+```bash
+cd server && npm run seed
+```
+
+---
+
+## Technology selection
+
+| Layer | Choice | Why |
+|---|---|---|
+| Frontend | React 18 + Vite + TypeScript | Assessment-permitted SPA stack with fast HMR and typed API clients. |
+| Styling | Tailwind CSS | Agency dark theme (`#0F172A` / `#1E293B`) without a heavy UI kit. |
+| Backend | Node.js + Express + TypeScript | Explicit REST handlers, validation, and middleware. |
+| Database | SQLite + Prisma | Real persistent storage with cascade deletes. Zero Docker/Mongo setup for reviewers. |
+| Client data | TanStack Query + Axios | Loading/error states, cache invalidation after mutations. |
+
+MongoDB/Mongoose would map cleanly to the same models (`Project`, `Task` with `projectId` ref). SQLite was preferred for this submission because cascade deletes are enforced in the schema and the app boots with a single file database.
+
+---
+
+## API documentation
+
+Base URL: `http://localhost:3001`
+
+Success payloads use `{ data, total? }`. Errors use `{ error: { message, code, fields? } }`.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Service health timestamp |
+| `GET` | `/api/dashboard/stats` | `totalProjects`, `activeProjects`, `completedTasks`, `pendingTasks` (plus status breakdowns) |
+| `GET` | `/api/projects` | List projects. Optional `?status=Active\|Completed\|On Hold` |
+| `POST` | `/api/projects` | Create project `{ title, description?, status?, deadline? }` |
+| `GET` | `/api/projects/:id` | Project detail with nested `tasks` |
+| `PUT` | `/api/projects/:id` | Update project |
+| `DELETE` | `/api/projects/:id` | Delete project and cascade-delete tasks |
+| `GET` | `/api/projects/:projectId/tasks` | Tasks for one project |
+| `POST` | `/api/projects/:projectId/tasks` | Create task on a project |
+| `PUT` | `/api/projects/:projectId/tasks/:taskId` | Update task with parent-project check |
+| `DELETE` | `/api/projects/:projectId/tasks/:taskId` | Delete task with parent-project check |
+| `PUT` | `/api/tasks/:id` | Update task (`status` or `completed: true/false`) |
+| `DELETE` | `/api/tasks/:id` | Delete task |
+| `GET` | `/api/projects/summary` | Alias of dashboard aggregates (backward compatible) |
+
+`deadline` is stored as `YYYY-MM-DD` (date-only) to avoid timezone drift.
+
+---
+
+## Features covered
+
+- Project list with status filter, search, grid/table views, add/edit modal, delete confirmation
+- Project detail with deadline countdown, task list, inline complete toggle, add/edit/delete tasks
+- Dashboard cards: total projects, active projects, completed tasks, pending tasks
+- Loading skeletons, toast notifications, mobile nav drawer
+- Auto-seed from `server/data/mock-data.json` when the database is empty
+
+---
+
+## Challenges
+
+1. **Date-only deadlines.** Native `Date` parsing shifts calendar days across timezones. Deadlines are stored as `YYYY-MM-DD` and formatted in UTC.
+2. **First-load data.** Reviewers should not need a manual seed step. Startup seeds only when the database is empty so production data is not wiped on restart.
+3. **Task ownership.** Global `/api/tasks/:id` routes exist as specified; project-scoped routes still reject cross-project updates.
+
+---
+
+## AI tools usage and validation
+
+AI assistants (Cursor / prior Antigravity scaffolding) were used for:
+
+- Mapping the assessment brief to routes, models, and UI views
+- Boilerplate (Express middleware, Tailwind tokens, modal forms)
+- Test and README drafts
+
+Every generated piece was reviewed and executed locally:
+
+- `npm run test:server` — API integration tests (Supertest + Vitest)
+- `npm run test:client` — date/countdown unit tests
+- `npm run build` — TypeScript compile for client and server
+- Manual UI checks: filter, CRUD, cascade delete confirmation, empty-database auto-seed
+
+I can walk through any file in a review: models in `server/prisma/schema.prisma`, seed logic in `server/src/lib/seed.ts`, routes in `server/src/routes/`, and UI in `client/src/pages/`.
+
+See also [`docs/AI_USAGE.md`](./docs/AI_USAGE.md).
+
+---
+
+## Tests
+
+```bash
+npm test
+# or
+npm run test:server
+npm run test:client
+```
