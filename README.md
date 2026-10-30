@@ -45,15 +45,11 @@ cd server
 cp .env.example .env
 npx prisma migrate dev
 npx prisma db seed
+cd ..
 npm run dev
 ```
 
-# In a second terminal, from the repository root:
-```bash
-npm run dev --workspace=client
-```
-
-Open [http://localhost:5173](http://localhost:5173). The Vite dev server proxies `/api` and `/health` to port 3001, so the browser works whether you open the frontend through `localhost`, `127.0.0.1`, or your machine's network hostname. Set `VITE_API_URL` only when the backend is hosted on a separate origin.
+The root development command starts both the API and Vite client. Keep that terminal running and open the Local URL Vite prints (normally [http://localhost:5173](http://localhost:5173)). The Vite dev server proxies `/api` and `/health` to port 3001, so the browser works whether you open the frontend through `localhost`, `127.0.0.1`, or your machine's network hostname. Set `VITE_API_URL` only when the backend is hosted on a separate origin.
 
 The seed script restores the exact 10 projects and 20 tasks from `server/data/mock-data.json`. It replaces existing records in the selected database, so use it to reset the assessment demo data:
 
