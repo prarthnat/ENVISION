@@ -32,7 +32,7 @@ Full-stack project and task dashboard for the EnvisionStudio Web Developer pract
 
 | Variable | Purpose | Example |
 |---|---|---|
-| `VITE_API_URL` | Backend origin used by Axios | `http://localhost:3001` |
+| `VITE_API_URL` | Optional separate backend origin; omit to use the same-origin API proxy | unset |
 
 ### Run locally
 
@@ -53,7 +53,7 @@ npm run dev
 npm run dev --workspace=client
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173). The Vite dev server proxies `/api` and `/health` to port 3001, so the browser works whether you open the frontend through `localhost`, `127.0.0.1`, or your machine's network hostname. Set `VITE_API_URL` only when the backend is hosted on a separate origin.
 
 The seed script restores the exact 10 projects and 20 tasks from `server/data/mock-data.json`. It replaces existing records in the selected database, so use it to reset the assessment demo data:
 
